@@ -1,97 +1,201 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# RnAiCamera
 
-# Getting Started
+음식 사진을 촬영한 뒤 Firebase AI로 음식명과 영양 정보를 추정하고, 결과를 기록으로 저장하는 React Native 앱입니다.  
+촬영 이미지 업로드, AI 분석, 로컬 기록 관리, AdMob 광고 표시까지 하나의 흐름으로 구성되어 있습니다.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## 주요 기능
 
-## Step 1: Start Metro
+- 음식 사진 촬영
+- Firebase AI 기반 음식 분석
+- 칼로리 및 영양소(탄수화물, 단백질, 지방) 추정
+- Firebase Storage 이미지 업로드
+- AsyncStorage 기반 분석 기록 저장/조회/삭제
+- AdMob 배너 광고 및 전면 광고 표시
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## 기술 스택
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+- React Native 0.81.5
+- React 19
+- TypeScript
+- React Navigation
+- React Native Vision Camera
+- React Native Firebase
+  - App
+  - AI
+  - Storage
+- React Native Google Mobile Ads
+- AsyncStorage
 
-```sh
-# Using npm
-npm start
+## 동작 흐름
 
-# OR using Yarn
-yarn start
+1. 홈 화면에서 저장된 음식 분석 기록을 확인합니다.
+2. 카메라 화면으로 이동해 음식 사진을 촬영합니다.
+3. 촬영한 이미지를 Firebase Storage에 업로드합니다.
+4. 이미지를 Base64로 읽어 Firebase AI로 분석합니다.
+5. 분석 결과를 로컬 저장소에 기록합니다.
+6. 홈 화면에서 상세 정보를 확인하거나 길게 눌러 기록을 삭제할 수 있습니다.
+
+## 프로젝트 구조
+
+```text
+.
+├── components/   # 기록 아이템, 상세 모달 등 UI 컴포넌트
+├── constants/    # AI 분석 프롬프트
+├── hooks/        # 기록 관리, AI 분석, 광고 로딩 훅
+├── screens/      # 홈 화면, 카메라 화면
+├── services/     # Firebase AI, Storage, AsyncStorage 서비스
+├── types/        # 네비게이션/기록/영양 정보 타입
+├── android/      # Android 네이티브 설정
+└── ios/          # iOS 네이티브 설정
 ```
 
-## Step 2: Build and run your app
+## 요구 사항
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+- Node.js 20 이상
+- Yarn 4
+- Xcode / CocoaPods
+- Android Studio
+- iOS Simulator 또는 Android Emulator / 실제 기기
 
-### Android
+## 설치 및 실행
+
+### 1. 의존성 설치
 
 ```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+yarn install
 ```
 
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+### 2. iOS Pod 설치
 
 ```sh
 bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
 bundle exec pod install
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+### 3. Metro 실행
 
 ```sh
-# Using npm
-npm run ios
+yarn start
+```
 
-# OR using Yarn
+### 4. 앱 실행
+
+Android:
+
+```sh
+yarn android
+```
+
+iOS:
+
+```sh
 yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+## 환경 설정
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+### Firebase
 
-## Step 3: Modify your app
+이 프로젝트는 Firebase App, Firebase AI, Firebase Storage 설정이 필요합니다.
 
-Now that you have successfully run the app, let's make changes!
+- Android: `android/app/google-services.json`
+- iOS: `ios/GoogleService-Info.plist`
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+위 파일들은 민감 설정 파일이므로 Git에 커밋하지 않고, 로컬 환경에서 직접 추가하는 것을 전제로 합니다.  
+다른 Firebase 프로젝트를 사용할 경우 각 플랫폼 설정 파일을 해당 프로젝트 값으로 교체해야 합니다.
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+또한 Firebase Console에서 최소한 아래 서비스가 활성화되어 있어야 합니다.
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+- Firebase Storage
+- Firebase AI 관련 설정
 
-## Congratulations! :tada:
+### AdMob
 
-You've successfully run and modified your React Native App. :partying_face:
+`app.json`의 AdMob 앱 ID는 현재 더미 값으로 설정되어 있습니다.  
+운영 또는 실제 테스트 환경에서는 앱 ID와 광고 unit id를 모두 직접 교체해야 합니다.
 
-### Now what?
+교체 대상:
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+- `app.json`
 
-# Troubleshooting
+- `screens/HomeScreen.tsx`
+- `hooks/useIntersitial.ts`
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+개발 환경에서는 Google Mobile Ads 테스트 ID를 사용합니다.
 
-# Learn More
+### 권한
 
-To learn more about React Native, take a look at the following resources:
+현재 앱은 다음 권한을 사용합니다.
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+- 카메라 권한
+- iOS App Tracking Transparency 권한
+
+iOS는 `Info.plist`, Android는 `AndroidManifest.xml`에 필요한 설정이 반영되어 있습니다.
+
+## 데이터 형식
+
+AI 분석 결과는 아래 구조를 기준으로 저장됩니다.
+
+```ts
+interface FoodAnalysisResult {
+  food_name: string;
+  calories: number;
+  nutrition: {
+    protein: number;
+    carbs: number;
+    fat: number;
+  };
+  confidence: number;
+}
+```
+
+기록 데이터는 아래 형태로 관리됩니다.
+
+```ts
+interface FoodRecord {
+  id: string;
+  createdAt: string;
+  imageUri: string;
+  analysisResult: FoodAnalysisResult;
+}
+```
+
+## 스크립트
+
+```sh
+yarn start
+yarn android
+yarn ios
+yarn test
+yarn lint
+```
+
+## 테스트
+
+기본 테스트 실행:
+
+```sh
+yarn test
+```
+
+정적 검사:
+
+```sh
+yarn lint
+```
+
+현재 테스트 구성은 기본 수준이며, AI 분석 흐름이나 Firebase 연동에 대한 통합 테스트는 포함되어 있지 않습니다.
+
+## 구현 메모
+
+- AI 모델은 `gemini-2.5-flash`를 사용합니다.
+- AI 응답은 JSON 문자열만 반환하도록 프롬프트가 구성되어 있습니다.
+- 분석 결과는 AsyncStorage 키 `@food_records`에 저장됩니다.
+- 이미지 파일은 Firebase Storage의 `food_images/` 경로 아래에 업로드됩니다.
+
+## 주의 사항
+
+- 영양 정보와 칼로리는 AI 추정치이므로 실제 수치와 다를 수 있습니다.
+- 음식이 아닌 이미지가 들어오면 정확한 결과를 보장하지 않습니다.
+- `google-services.json`, `GoogleService-Info.plist`, 실제 광고 ID 같은 민감 설정값은 저장소에 포함하지 않는 것을 권장합니다.
+- 실제 배포 전에는 Firebase 프로젝트, 광고 unit id, 릴리스 서명, 개인정보 처리 정책을 별도로 점검해야 합니다.
