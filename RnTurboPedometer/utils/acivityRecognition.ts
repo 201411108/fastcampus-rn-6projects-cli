@@ -1,26 +1,59 @@
-import { PermissionsAndroid, Platform } from 'react-native';
+import { Platform } from 'react-native';
+import { check, PERMISSIONS, request, RESULTS } from 'react-native-permissions';
 
-export async function ensureAndroidActivityRecognitionPermission() {
-  if (Platform.OS !== 'android') {
-    return true;
+type StepSensorPermissionStatus = 'granted' | 'denied' | 'blocked' | 'unavailable';
+
+function getStepSensorPermission() {
+  if (Platform.OS === 'android') {
+    return PERMISSIONS.ANDROID.ACTIVITY_RECOGNITION;
   }
 
-  const permission = PermissionsAndroid.PERMISSIONS.ACTIVITY_RECOGNITION;
+  if (Platform.OS === 'ios') {
+    return PERMISSIONS.IOS.MOTION;
+  }
+
+  return null;
+}
+
+export async function checkStepSensorPermissionStatus(): Promise<StepSensorPermissionStatus> {
+  const permission = getStepSensorPermission();
+  if (!permission) {
+    return 'unavailable';
+  }
+
+  const status = await check(permission);
+  if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
+    return 'granted';
+  }
+  if (status === RESULTS.BLOCKED) {
+    return 'blocked';
+  }
+  if (status === RESULTS.UNAVAILABLE) {
+    return 'unavailable';
+  }
+
+  return 'denied';
+}
+
+export async function ensureStepSensorPermission() {
+  const permission = getStepSensorPermission();
   if (!permission) {
     return true;
   }
 
-  const alreadyGranted = await PermissionsAndroid.check(permission);
-  if (alreadyGranted) {
+  const currentStatus = await checkStepSensorPermissionStatus();
+  if (currentStatus === 'granted' || currentStatus === 'unavailable') {
     return true;
   }
+  if (currentStatus === 'blocked') {
+    return false;
+  }
 
-  const result = await PermissionsAndroid.request(permission, {
-    title: '걸음 수 권한 요청',
-    message: '걸음 수 센서를 읽으려면 활동 인식 권한이 필요합니다.',
-    buttonPositive: '허용',
-    buttonNegative: '취소',
-  });
+  const requestedStatus = await request(permission);
+  return requestedStatus === RESULTS.GRANTED || requestedStatus === RESULTS.LIMITED;
+}
 
-  return result === PermissionsAndroid.RESULTS.GRANTED;
+// 기존 호출부 호환용 래퍼
+export async function ensureAndroidActivityRecognitionPermission() {
+  return ensureStepSensorPermission();
 }

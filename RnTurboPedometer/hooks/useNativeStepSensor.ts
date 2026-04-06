@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import NativeStepSensor from '../specs/NativeStepSensor';
-import { ensureAndroidActivityRecognitionPermission } from '../utils/acivityRecognition';
+import { ensureStepSensorPermission } from '../utils/acivityRecognition';
 
+// @deprecated
 export function useNativeStepSensor() {
   const [available, setAvailable] = useState<boolean | null>(null);
   const [sensorName, setSensorName] = useState('확인 전');
@@ -43,10 +44,10 @@ export function useNativeStepSensor() {
 
   async function refreshAvailability() {
     setError(null);
-    const granted = await ensureAndroidActivityRecognitionPermission();
+    const granted = await ensureStepSensorPermission();
     if (!granted) {
       setAvailable(false);
-      setError('Android에서는 ACTIVITY_RECOGNITION 권한이 필요합니다.');
+      setError('걸음 수 센서를 사용하려면 권한 허용이 필요합니다.');
       return;
     }
 
@@ -59,10 +60,10 @@ export function useNativeStepSensor() {
     setError(null);
 
     try {
-      const granted = await ensureAndroidActivityRecognitionPermission();
+      const granted = await ensureStepSensorPermission();
       if (!granted) {
         setAvailable(false);
-        setError('Android에서는 ACTIVITY_RECOGNITION 권한이 필요합니다.');
+        setError('걸음 수 센서를 사용하려면 권한 허용이 필요합니다.');
         return;
       }
 

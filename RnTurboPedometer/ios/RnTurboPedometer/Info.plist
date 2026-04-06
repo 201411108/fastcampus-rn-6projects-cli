@@ -31,8 +31,8 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<key>NSMotionUsageDescription</key>
+	<string>걸음 수 측정을 위해 모션 및 피트니스 데이터 접근 권한이 필요합니다.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
