@@ -17,7 +17,7 @@ export default function HomeScreen({}: HomeScreenProps) {
       <View style={styles.content}>
         <Text style={styles.title}>현재 걸음 수</Text>
         <StepGoalInput onGoalSaved={setGoalStepCount} />
-        <StepCounter hasGoalConfigured={goalStepCount !== null} />
+        <StepCounter goalStepCount={goalStepCount} />
       </View>
     </KeyboardAwareScrollView>
   );

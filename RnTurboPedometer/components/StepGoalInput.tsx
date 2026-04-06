@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Keyboard,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 type StepGoalInputProps = {
   onGoalSaved?: (goal: number) => void;
@@ -21,6 +28,7 @@ export default function StepGoalInput({ onGoalSaved }: StepGoalInputProps) {
     setSavedGoal(parsedGoal);
     setErrorMessage('');
     onGoalSaved?.(parsedGoal);
+    Keyboard.dismiss();
   };
 
   return (

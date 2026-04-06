@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { EventSubscription } from 'react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ensureStepSensorPermission } from '../utils/acivityRecognition';
+import StepProgressRing from './StepProgressRing';
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
@@ -18,16 +19,17 @@ function getErrorMessage(error: unknown) {
 }
 
 type StepCounterProps = {
-  hasGoalConfigured: boolean;
+  goalStepCount: number | null;
 };
 
-export default function StepCounter({ hasGoalConfigured }: StepCounterProps) {
+export default function StepCounter({ goalStepCount }: StepCounterProps) {
   const stepSubscriptionRef = useRef<EventSubscription | null>(null);
   const [stepCount, setStepCount] = useState(0);
   const [isTracking, setIsTracking] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [statusMessage, setStatusMessage] = useState('추적을 시작해 주세요.');
   const [errorMessage, setErrorMessage] = useState('');
+  const hasGoalConfigured = goalStepCount !== null;
 
   const stopTracking = useCallback((nextStatusMessage: string) => {
     stopStepCounterUpdate();
@@ -114,7 +116,7 @@ export default function StepCounter({ hasGoalConfigured }: StepCounterProps) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>실시간 걸음 수</Text>
-      <Text style={styles.stepCount}>{stepCount}보</Text>
+      <StepProgressRing stepCount={stepCount} goalStepCount={goalStepCount} />
       <Text style={styles.statusText}>{statusMessage}</Text>
       {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
       <Pressable
@@ -148,11 +150,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#111827',
-  },
-  stepCount: {
-    fontSize: 32,
-    fontWeight: '800',
     color: '#111827',
   },
   statusText: {
