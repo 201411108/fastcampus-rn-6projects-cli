@@ -8,11 +8,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { EventSubscription } from 'react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useStepCounterBackgroundSync } from '../hooks/useStepCounterBackgroundSync.ts';
+import { useStepInsightAutoTrigger } from '../hooks/useStepInsightAutoTrigger';
 import { ensureBackgroundStepPermissions } from '../utils/acivityRecognition';
 import {
   startForegroundStepTrackingService,
   stopForegroundStepTrackingService,
 } from '../services/stepForegroundService.ts';
+import StepInsightResultCard from './StepInsightResultCard';
 import StepProgressRing from './StepProgressRing';
 
 function getErrorMessage(error: unknown) {
@@ -69,6 +71,17 @@ export default function StepCounter({ goalStepCount }: StepCounterProps) {
     setStatusMessage,
     setErrorMessage,
   });
+  const {
+    isGeneratingStepInsight,
+    stepInsightErrorMessage,
+    stepInsightResult,
+    regenerateStepInsight,
+    resetStepInsightAutoTrigger,
+  } = useStepInsightAutoTrigger({
+    isTracking,
+    stepCount,
+    goalStepCount,
+  });
 
   const startStepUpdateSession = useCallback(
     (sessionStartDate: Date, options?: { resetCount?: boolean }) => {
@@ -96,9 +109,10 @@ export default function StepCounter({ goalStepCount }: StepCounterProps) {
     stepSubscriptionRef.current?.remove();
     stepSubscriptionRef.current = null;
     sessionStartRef.current = null;
+    resetStepInsightAutoTrigger();
     setIsTracking(false);
     setStatusMessage(nextStatusMessage);
-  }, []);
+  }, [resetStepInsightAutoTrigger]);
 
   const startTracking = useCallback(async () => {
     if (isTracking || isProcessing) {
@@ -139,6 +153,7 @@ export default function StepCounter({ goalStepCount }: StepCounterProps) {
 
       const sessionStartDate = new Date();
       sessionStartRef.current = sessionStartDate;
+      resetStepInsightAutoTrigger();
       startStepUpdateSession(sessionStartDate, { resetCount: true });
 
       setIsTracking(true);
@@ -151,7 +166,12 @@ export default function StepCounter({ goalStepCount }: StepCounterProps) {
     } finally {
       setIsProcessing(false);
     }
-  }, [isProcessing, isTracking, startStepUpdateSession]);
+  }, [
+    isProcessing,
+    isTracking,
+    resetStepInsightAutoTrigger,
+    startStepUpdateSession,
+  ]);
 
   const handlePress = useCallback(async () => {
     if (isTracking) {
@@ -169,6 +189,11 @@ export default function StepCounter({ goalStepCount }: StepCounterProps) {
   }, [hasGoalConfigured, isTracking, startTracking, stopTracking]);
 
   const isStartDisabled = !isTracking && (!hasGoalConfigured || isProcessing);
+  const canRegenerateStepInsight =
+    isTracking &&
+    goalStepCount !== null &&
+    goalStepCount > 0 &&
+    stepCount >= goalStepCount;
 
   useEffect(() => {
     return () => {
@@ -185,6 +210,13 @@ export default function StepCounter({ goalStepCount }: StepCounterProps) {
       <StepProgressRing stepCount={stepCount} goalStepCount={goalStepCount} />
       <Text style={styles.statusText}>{statusMessage}</Text>
       {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+      <StepInsightResultCard
+        isGenerating={isGeneratingStepInsight}
+        errorMessage={stepInsightErrorMessage}
+        result={stepInsightResult}
+        canRegenerate={canRegenerateStepInsight}
+        onRegenerate={regenerateStepInsight}
+      />
       <Pressable
         style={[
           styles.button,
