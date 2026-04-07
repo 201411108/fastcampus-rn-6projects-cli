@@ -6,12 +6,13 @@ import {
 } from '@dongminyu/react-native-step-counter';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { EventSubscription } from 'react-native';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useStepCounterBackgroundSync } from '../hooks/useStepCounterBackgroundSync.ts';
 import { ensureBackgroundStepPermissions } from '../utils/acivityRecognition';
 import {
   startForegroundStepTrackingService,
   stopForegroundStepTrackingService,
-} from '../services/stepForegroundService';
+} from '../services/stepForegroundService.ts';
 import StepProgressRing from './StepProgressRing';
 
 function getErrorMessage(error: unknown) {
@@ -53,6 +54,7 @@ type StepCounterProps = {
 
 export default function StepCounter({ goalStepCount }: StepCounterProps) {
   const stepSubscriptionRef = useRef<EventSubscription | null>(null);
+  const sessionStartRef = useRef<Date | null>(null);
   const [stepCount, setStepCount] = useState(0);
   const [isTracking, setIsTracking] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -60,13 +62,40 @@ export default function StepCounter({ goalStepCount }: StepCounterProps) {
   const [errorMessage, setErrorMessage] = useState('');
   const hasGoalConfigured = goalStepCount !== null;
 
+  useStepCounterBackgroundSync({
+    isTracking,
+    sessionStartRef,
+    setStepCount,
+    setStatusMessage,
+    setErrorMessage,
+  });
+
+  const startStepUpdateSession = useCallback(
+    (sessionStartDate: Date, options?: { resetCount?: boolean }) => {
+      stopStepCounterUpdate();
+      stepSubscriptionRef.current?.remove();
+      stepSubscriptionRef.current = null;
+
+      if (options?.resetCount) {
+        setStepCount(0);
+      }
+
+      stepSubscriptionRef.current = startStepCounterUpdate(
+        sessionStartDate,
+        (data: StepCountData) => {
+          setStepCount(data.steps);
+        },
+      );
+    },
+    [],
+  );
+
   const stopTracking = useCallback((nextStatusMessage: string) => {
-    if (Platform.OS === 'android') {
-      stopForegroundStepTrackingService().catch(() => {});
-    }
+    stopForegroundStepTrackingService().catch(() => {});
     stopStepCounterUpdate();
     stepSubscriptionRef.current?.remove();
     stepSubscriptionRef.current = null;
+    sessionStartRef.current = null;
     setIsTracking(false);
     setStatusMessage(nextStatusMessage);
   }, []);
@@ -78,6 +107,7 @@ export default function StepCounter({ goalStepCount }: StepCounterProps) {
 
     setIsProcessing(true);
     setErrorMessage('');
+    let isAndroidForegroundServiceStarted = false;
 
     try {
       const permissionResult = await ensureBackgroundStepPermissions();
@@ -104,30 +134,24 @@ export default function StepCounter({ goalStepCount }: StepCounterProps) {
         return;
       }
 
-      if (Platform.OS === 'android') {
-        await startForegroundStepTrackingService();
-      }
+      await startForegroundStepTrackingService();
+      isAndroidForegroundServiceStarted = true;
 
-      stopStepCounterUpdate();
-      stepSubscriptionRef.current?.remove();
-      stepSubscriptionRef.current = null;
-
-      setStepCount(0);
-      stepSubscriptionRef.current = startStepCounterUpdate(
-        new Date(),
-        (data: StepCountData) => {
-          setStepCount(data.steps);
-        },
-      );
+      const sessionStartDate = new Date();
+      sessionStartRef.current = sessionStartDate;
+      startStepUpdateSession(sessionStartDate, { resetCount: true });
 
       setIsTracking(true);
       setStatusMessage('걸음 수를 추적 중입니다.');
     } catch (error) {
+      if (isAndroidForegroundServiceStarted) {
+        stopForegroundStepTrackingService().catch(() => {});
+      }
       setErrorMessage(getErrorMessage(error));
     } finally {
       setIsProcessing(false);
     }
-  }, [isProcessing, isTracking]);
+  }, [isProcessing, isTracking, startStepUpdateSession]);
 
   const handlePress = useCallback(async () => {
     if (isTracking) {
@@ -148,9 +172,7 @@ export default function StepCounter({ goalStepCount }: StepCounterProps) {
 
   useEffect(() => {
     return () => {
-      if (Platform.OS === 'android') {
-        stopForegroundStepTrackingService().catch(() => {});
-      }
+      stopForegroundStepTrackingService().catch(() => {});
       stopStepCounterUpdate();
       stepSubscriptionRef.current?.remove();
       stepSubscriptionRef.current = null;
