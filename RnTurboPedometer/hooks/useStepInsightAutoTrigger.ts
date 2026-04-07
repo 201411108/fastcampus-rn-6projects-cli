@@ -3,6 +3,11 @@ import {
   generateStepInsightWithAi,
   getEmptyStepInsightResult,
 } from '../services/stepInsightAi';
+import {
+  appendStepInsightHistory,
+  getStepInsightHistory,
+} from '../services/stepInsightHistoryStorage';
+import type { StepInsightHistoryItem } from '../types/stepInsight';
 
 type UseStepInsightAutoTriggerParams = {
   isTracking: boolean;
@@ -21,6 +26,14 @@ export function useStepInsightAutoTrigger({
   const [stepInsightResult, setStepInsightResult] = useState(
     getEmptyStepInsightResult(),
   );
+  const [stepInsightHistory, setStepInsightHistory] = useState<StepInsightHistoryItem[]>(
+    [],
+  );
+
+  const refreshStepInsightHistory = useCallback(async () => {
+    const nextHistory = await getStepInsightHistory();
+    setStepInsightHistory(nextHistory);
+  }, []);
 
   const requestStepInsight = useCallback(
     async (params: { nextStepCount: number; nextGoalStepCount: number }) => {
@@ -40,14 +53,25 @@ export function useStepInsightAutoTrigger({
       });
 
       setStepInsightResult(result.data);
-      if (result.isFallback) {
+      if (!result.isFallback) {
+        const historyItem: StepInsightHistoryItem = {
+          id: `${Date.now()}-${nextStepCount}-${nextGoalStepCount}`,
+          createdAt: new Date().toISOString(),
+          stepCount: nextStepCount,
+          goalStepCount: nextGoalStepCount,
+          progressPercent,
+          result: result.data,
+        };
+        await appendStepInsightHistory(historyItem);
+        await refreshStepInsightHistory();
+      } else {
         setStepInsightErrorMessage(
           'AI 인사이트 생성에 실패했습니다. 다시 시도해 주세요.',
         );
       }
       setIsGeneratingStepInsight(false);
     },
-    [],
+    [refreshStepInsightHistory],
   );
 
   const resetStepInsightAutoTrigger = useCallback(() => {
@@ -68,6 +92,10 @@ export function useStepInsightAutoTrigger({
       nextGoalStepCount: goalStepCount,
     });
   }, [goalStepCount, isTracking, requestStepInsight, stepCount]);
+
+  useEffect(() => {
+    refreshStepInsightHistory();
+  }, [refreshStepInsightHistory]);
 
   useEffect(() => {
     if (!isTracking || !goalStepCount || goalStepCount <= 0) {
@@ -91,6 +119,8 @@ export function useStepInsightAutoTrigger({
     isGeneratingStepInsight,
     stepInsightErrorMessage,
     stepInsightResult,
+    stepInsightHistory,
+    refreshStepInsightHistory,
     regenerateStepInsight,
     resetStepInsightAutoTrigger,
   };

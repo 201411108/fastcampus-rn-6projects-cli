@@ -3,10 +3,10 @@ import StepGoalInput from '../components/StepGoalInput';
 import StepCounter from '../components/StepCounter';
 import { HomeScreenProps } from '../types/navigator';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { useState } from 'react';
+import { useStepTrackingContext } from '../contexts/StepTrackingContext';
 
 export default function HomeScreen({}: HomeScreenProps) {
-  const [goalStepCount, setGoalStepCount] = useState<number | null>(null);
+  const { setGoalStepCount } = useStepTrackingContext();
 
   return (
     <KeyboardAwareScrollView
@@ -17,7 +17,7 @@ export default function HomeScreen({}: HomeScreenProps) {
       <View style={styles.content}>
         <Text style={styles.title}>현재 걸음 수</Text>
         <StepGoalInput onGoalSaved={setGoalStepCount} />
-        <StepCounter goalStepCount={goalStepCount} />
+        <StepCounter />
       </View>
     </KeyboardAwareScrollView>
   );

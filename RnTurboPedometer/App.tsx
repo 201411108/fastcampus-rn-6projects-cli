@@ -1,12 +1,14 @@
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from './screens/HomeScreen';
-import { RootStackParamList } from './types/navigator';
 import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { ensureStepSensorPermission } from './utils/acivityRecognition';
 import { useEffect } from 'react';
+import HomeScreen from './screens/HomeScreen';
+import HistoryScreen from './screens/HistoryScreen';
+import { RootTabParamList } from './types/navigator';
+import { StepTrackingProvider } from './contexts/StepTrackingContext';
 
-const RootStack = createNativeStackNavigator<RootStackParamList>();
+const RootTab = createBottomTabNavigator<RootTabParamList>();
 
 export default function App() {
   useEffect(() => {
@@ -32,11 +34,22 @@ export default function App() {
 
   return (
     <KeyboardProvider>
-      <NavigationContainer>
-        <RootStack.Navigator initialRouteName="Home">
-          <RootStack.Screen name="Home" component={HomeScreen} />
-        </RootStack.Navigator>
-      </NavigationContainer>
+      <StepTrackingProvider>
+        <NavigationContainer>
+          <RootTab.Navigator initialRouteName="Home">
+            <RootTab.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{ title: '홈' }}
+            />
+            <RootTab.Screen
+              name="History"
+              component={HistoryScreen}
+              options={{ title: '기록' }}
+            />
+          </RootTab.Navigator>
+        </NavigationContainer>
+      </StepTrackingProvider>
     </KeyboardProvider>
   );
 }
