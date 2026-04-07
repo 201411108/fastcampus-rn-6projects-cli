@@ -6,8 +6,12 @@ import {
 } from '@dongminyu/react-native-step-counter';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { EventSubscription } from 'react-native';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { ensureStepSensorPermission } from '../utils/acivityRecognition';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ensureBackgroundStepPermissions } from '../utils/acivityRecognition';
+import {
+  startForegroundStepTrackingService,
+  stopForegroundStepTrackingService,
+} from '../services/stepForegroundService';
 import StepProgressRing from './StepProgressRing';
 
 function getErrorMessage(error: unknown) {
@@ -16,6 +20,31 @@ function getErrorMessage(error: unknown) {
   }
 
   return '걸음 수를 추적하는 중 오류가 발생했습니다.';
+}
+
+function getPermissionName(permission: string) {
+  if (permission === 'activityRecognition') {
+    return '활동 인식';
+  }
+  if (permission === 'motion') {
+    return '모션 및 피트니스';
+  }
+  if (permission === 'notifications') {
+    return '알림';
+  }
+  return permission;
+}
+
+function getPermissionErrorMessage(
+  status: 'denied' | 'blocked',
+  missingPermissions: string[],
+) {
+  const permissionNames = missingPermissions.map(getPermissionName).join(', ');
+  if (status === 'blocked') {
+    return `${permissionNames} 권한이 차단되어 있어 설정에서 직접 허용해야 합니다.`;
+  }
+
+  return `${permissionNames} 권한이 허용되어야 추적을 시작할 수 있습니다.`;
 }
 
 type StepCounterProps = {
@@ -32,6 +61,9 @@ export default function StepCounter({ goalStepCount }: StepCounterProps) {
   const hasGoalConfigured = goalStepCount !== null;
 
   const stopTracking = useCallback((nextStatusMessage: string) => {
+    if (Platform.OS === 'android') {
+      stopForegroundStepTrackingService().catch(() => {});
+    }
     stopStepCounterUpdate();
     stepSubscriptionRef.current?.remove();
     stepSubscriptionRef.current = null;
@@ -48,9 +80,14 @@ export default function StepCounter({ goalStepCount }: StepCounterProps) {
     setErrorMessage('');
 
     try {
-      const hasPermission = await ensureStepSensorPermission();
-      if (!hasPermission) {
-        setErrorMessage('걸음 수 권한이 허용되어야 추적을 시작할 수 있습니다.');
+      const permissionResult = await ensureBackgroundStepPermissions();
+      if (permissionResult.status !== 'granted') {
+        setErrorMessage(
+          getPermissionErrorMessage(
+            permissionResult.status,
+            permissionResult.missingPermissions,
+          ),
+        );
         return;
       }
 
@@ -65,6 +102,10 @@ export default function StepCounter({ goalStepCount }: StepCounterProps) {
           '걸음 수 권한이 허용되지 않아 추적을 시작할 수 없습니다.',
         );
         return;
+      }
+
+      if (Platform.OS === 'android') {
+        await startForegroundStepTrackingService();
       }
 
       stopStepCounterUpdate();
@@ -107,6 +148,9 @@ export default function StepCounter({ goalStepCount }: StepCounterProps) {
 
   useEffect(() => {
     return () => {
+      if (Platform.OS === 'android') {
+        stopForegroundStepTrackingService().catch(() => {});
+      }
       stopStepCounterUpdate();
       stepSubscriptionRef.current?.remove();
       stepSubscriptionRef.current = null;
