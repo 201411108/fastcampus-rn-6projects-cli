@@ -1,4 +1,4 @@
-package com.rnturbopedometer
+package com.hankim.turbopedometer
 
 import android.app.Application
 import com.facebook.react.PackageList
@@ -9,7 +9,7 @@ import com.facebook.react.ReactNativeHost
 import com.facebook.react.ReactPackage
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
-import com.rnturbopedometer.nativestepsensor.NativeStepSonsorPackage
+import com.hankim.turbopedometer.nativestepsensor.NativeStepSonsorPackage
 
 class MainApplication : Application(), ReactApplication {
 

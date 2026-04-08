@@ -2645,6 +2645,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-firebase/messaging@npm:^24.0.0":
+  version: 24.0.0
+  resolution: "@react-native-firebase/messaging@npm:24.0.0"
+  peerDependencies:
+    "@react-native-firebase/app": 24.0.0
+    expo: ">=47.0.0"
+  peerDependenciesMeta:
+    expo:
+      optional: true
+  checksum: 81dabf2f77c435736a2f5cd55afdb41cadb4d14908f4a15e0b80faef3b2241b06c6f3a462dbf9e65c9883c94b299afd0ca852edb86c1a93fb6e5384ebc314340
+  languageName: node
+  linkType: hard
+
 "@react-native/assets-registry@npm:0.81.5":
   version: 0.81.5
   resolution: "@react-native/assets-registry@npm:0.81.5"
@@ -3446,6 +3459,7 @@ __metadata:
     "@react-native-community/cli-platform-ios": 20.0.0
     "@react-native-firebase/ai": ^24.0.0
     "@react-native-firebase/app": ^24.0.0
+    "@react-native-firebase/messaging": ^24.0.0
     "@react-native/babel-preset": 0.81.5
     "@react-native/eslint-config": 0.81.5
     "@react-native/metro-config": 0.81.5

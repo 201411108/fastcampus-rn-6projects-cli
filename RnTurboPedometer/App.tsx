@@ -1,7 +1,10 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import messaging from '@react-native-firebase/messaging';
+import notifee from '@notifee/react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { ensureStepSensorPermission } from './utils/acivityRecognition';
+import { requestFcmPermissionAndGetToken, onFcmTokenRefresh } from './utils/fcmToken';
 import { useEffect } from 'react';
 import HomeScreen from './screens/HomeScreen';
 import HistoryScreen from './screens/HistoryScreen';
@@ -29,6 +32,39 @@ export default function App() {
 
     return () => {
       mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    async function initFcm() {
+      const { token } = await requestFcmPermissionAndGetToken();
+      if (token) {
+        console.log('FCM token:', token);
+      }
+    }
+
+    initFcm();
+
+    const unsubscribeTokenRefresh = onFcmTokenRefresh(newToken => {
+      console.log('FCM token refreshed:', newToken);
+    });
+
+    const unsubscribeForegroundMessage = messaging().onMessage(async remoteMessage => {
+      if (remoteMessage.notification) {
+        await notifee.displayNotification({
+          title: remoteMessage.notification.title ?? '알림',
+          body: remoteMessage.notification.body ?? '',
+          android: {
+            channelId: 'default',
+            pressAction: { id: 'default' },
+          },
+        });
+      }
+    });
+
+    return () => {
+      unsubscribeTokenRefresh();
+      unsubscribeForegroundMessage();
     };
   }, []);
 

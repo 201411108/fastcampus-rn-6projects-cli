@@ -7,6 +7,7 @@ import {
   appendStepInsightHistory,
   getStepInsightHistory,
 } from '../services/stepInsightHistoryStorage';
+import { sendGoalAchievedNotification } from '../utils/goalNotification';
 import type { StepInsightHistoryItem } from '../types/stepInsight';
 
 type UseStepInsightAutoTriggerParams = {
@@ -109,6 +110,7 @@ export function useStepInsightAutoTrigger({
     }
 
     lastRequestedGoalStepCountRef.current = goalStepCount;
+    sendGoalAchievedNotification(stepCount, goalStepCount);
     requestStepInsight({
       nextStepCount: stepCount,
       nextGoalStepCount: goalStepCount,

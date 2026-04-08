@@ -1,4 +1,4 @@
-package com.rnturbopedometer.nativestepsensor
+package com.hankim.turbopedometer.nativestepsensor
 
 import com.facebook.react.BaseReactPackage
 import com.facebook.react.bridge.NativeModule
