@@ -15,6 +15,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { EventSubscription } from 'react-native';
+import { usePurchaseEntitlement } from './PurchaseEntitlementContext';
 import { useStepCounterBackgroundSync } from '../hooks/useStepCounterBackgroundSync';
 import { useStepInsightAutoTrigger } from '../hooks/useStepInsightAutoTrigger';
 import {
@@ -83,6 +84,8 @@ type StepTrackingProviderProps = {
 };
 
 export function StepTrackingProvider({ children }: StepTrackingProviderProps) {
+  const { shouldHideAds } = usePurchaseEntitlement();
+
   const stepSubscriptionRef = useRef<EventSubscription | null>(null);
   const sessionStartRef = useRef<Date | null>(null);
   const [goalStepCount, setGoalStepCountState] = useState<number | null>(null);
@@ -113,6 +116,7 @@ export function StepTrackingProvider({ children }: StepTrackingProviderProps) {
     isTracking,
     stepCount,
     goalStepCount,
+    shouldHideAds,
   });
 
   const setGoalStepCount = useCallback((nextGoalStepCount: number) => {

@@ -5,10 +5,12 @@ import StepCounter from '../components/StepCounter';
 import { homeBannerAdUnitId } from '../constants/adMobUnits';
 import { HomeScreenProps } from '../types/navigator';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { usePurchaseEntitlement } from '../contexts/PurchaseEntitlementContext';
 import { useStepTrackingContext } from '../contexts/StepTrackingContext';
 
 export default function HomeScreen({}: HomeScreenProps) {
   const { setGoalStepCount } = useStepTrackingContext();
+  const { shouldHideAds } = usePurchaseEntitlement();
 
   return (
     <KeyboardAwareScrollView
@@ -16,15 +18,17 @@ export default function HomeScreen({}: HomeScreenProps) {
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={styles.contentContainer}
     >
-      <View style={styles.bannerSection}>
-        <BannerAd
-          unitId={homeBannerAdUnitId}
-          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-          onAdFailedToLoad={error => {
-            console.warn('배너 광고를 불러오지 못했습니다.', error);
-          }}
-        />
-      </View>
+      {!shouldHideAds ? (
+        <View style={styles.bannerSection}>
+          <BannerAd
+            unitId={homeBannerAdUnitId}
+            size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+            onAdFailedToLoad={error => {
+              console.warn('배너 광고를 불러오지 못했습니다.', error);
+            }}
+          />
+        </View>
+      ) : null}
       <View style={styles.content}>
         <Text style={styles.title}>현재 걸음 수</Text>
         <StepGoalInput onGoalSaved={setGoalStepCount} />

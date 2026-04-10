@@ -3489,7 +3489,9 @@ __metadata:
     react: 19.1.0
     react-native: 0.81.5
     react-native-google-mobile-ads: ^16.3.2
+    react-native-iap: ^14.7.20
     react-native-keyboard-controller: ^1.21.4
+    react-native-nitro-modules: ^0.35.4
     react-native-permissions: ^5.5.1
     react-native-reanimated: ^4.3.0
     react-native-safe-area-context: ^5.7.0
@@ -7886,6 +7888,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-iap@npm:^14.7.20":
+  version: 14.7.20
+  resolution: "react-native-iap@npm:14.7.20"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-nitro-modules: ^0.35.0
+  checksum: 64e4a8eb3d5a016c385e71910463f05992ca5cb69995fb88727553c5d27f35abfc4487ea540bb22e0206aed9d54d232953dccfce2079b54aaad3123ba6ff99bb
+  languageName: node
+  linkType: hard
+
 "react-native-is-edge-to-edge@npm:^1.2.1, react-native-is-edge-to-edge@npm:^1.3.1":
   version: 1.3.1
   resolution: "react-native-is-edge-to-edge@npm:1.3.1"
@@ -7906,6 +7919,16 @@ __metadata:
     react-native: "*"
     react-native-reanimated: ">=3.0.0"
   checksum: c5007632a4f7bb49f4852b41ffde87bb2ca5d91702dbdef054b2bf641f550d14b47a46db2b322b56e5c1d9a756c7951d90bccef152f26a563fc0284d034d7ed1
+  languageName: node
+  linkType: hard
+
+"react-native-nitro-modules@npm:^0.35.4":
+  version: 0.35.4
+  resolution: "react-native-nitro-modules@npm:0.35.4"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: e243aa9865cd968de4e8a9d410e47b3190cdbb7d4613aef632db04adb9acfe6a4ff458d2d5f8ff6d1fc41252f586783e05d9ff1c1d07f2cd506b98fc6342274d
   languageName: node
   linkType: hard
 

@@ -15,12 +15,15 @@ type UseStepInsightAutoTriggerParams = {
   isTracking: boolean;
   stepCount: number;
   goalStepCount: number | null;
+  /** true이면 AI 인사이트 직전 전면 광고를 표시하지 않습니다. */
+  shouldHideAds: boolean;
 };
 
 export function useStepInsightAutoTrigger({
   isTracking,
   stepCount,
   goalStepCount,
+  shouldHideAds,
 }: UseStepInsightAutoTriggerParams) {
   const lastRequestedGoalStepCountRef = useRef<number | null>(null);
   const [isGeneratingStepInsight, setIsGeneratingStepInsight] = useState(false);
@@ -48,13 +51,16 @@ export function useStepInsightAutoTrigger({
       setStepInsightErrorMessage('');
 
       const progressPercent = (nextStepCount / nextGoalStepCount) * 100;
+      const insightAdPromise = shouldHideAds
+        ? Promise.resolve()
+        : showInsightInterstitial();
       const [result] = await Promise.all([
         generateStepInsightWithAi({
           stepCount: nextStepCount,
           goalStepCount: nextGoalStepCount,
           progressPercent,
         }),
-        showInsightInterstitial(),
+        insightAdPromise,
       ]);
 
       setStepInsightResult(result.data);
@@ -76,7 +82,7 @@ export function useStepInsightAutoTrigger({
       }
       setIsGeneratingStepInsight(false);
     },
-    [refreshStepInsightHistory],
+    [refreshStepInsightHistory, shouldHideAds],
   );
 
   const resetStepInsightAutoTrigger = useCallback(() => {

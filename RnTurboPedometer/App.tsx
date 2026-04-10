@@ -5,6 +5,7 @@ import HomeScreen from './screens/HomeScreen';
 import HistoryScreen from './screens/HistoryScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import { RootTabParamList } from './types/navigator';
+import { PurchaseEntitlementProvider } from './contexts/PurchaseEntitlementContext';
 import { StepTrackingProvider } from './contexts/StepTrackingContext';
 import { useAppBootstrap } from './hooks/useAppBootstrap';
 
@@ -15,27 +16,29 @@ export default function App() {
 
   return (
     <KeyboardProvider>
-      <StepTrackingProvider>
-        <NavigationContainer>
-          <RootTab.Navigator initialRouteName="Home">
-            <RootTab.Screen
-              name="Home"
-              component={HomeScreen}
-              options={{ title: '홈' }}
-            />
-            <RootTab.Screen
-              name="History"
-              component={HistoryScreen}
-              options={{ title: '기록' }}
-            />
-            <RootTab.Screen
-              name="Settings"
-              component={SettingsScreen}
-              options={{ title: '정보' }}
-            />
-          </RootTab.Navigator>
-        </NavigationContainer>
-      </StepTrackingProvider>
+      <PurchaseEntitlementProvider>
+        <StepTrackingProvider>
+          <NavigationContainer>
+            <RootTab.Navigator initialRouteName="Home">
+              <RootTab.Screen
+                name="Home"
+                component={HomeScreen}
+                options={{ title: '홈' }}
+              />
+              <RootTab.Screen
+                name="History"
+                component={HistoryScreen}
+                options={{ title: '기록' }}
+              />
+              <RootTab.Screen
+                name="Settings"
+                component={SettingsScreen}
+                options={{ title: '정보' }}
+              />
+            </RootTab.Navigator>
+          </NavigationContainer>
+        </StepTrackingProvider>
+      </PurchaseEntitlementProvider>
     </KeyboardProvider>
   );
 }
