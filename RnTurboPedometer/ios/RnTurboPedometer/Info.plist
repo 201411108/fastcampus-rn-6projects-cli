@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>RnTurboPedometer</string>
+	<string>AI 터보 만보기</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -33,6 +33,8 @@
 	</dict>
 	<key>NSMotionUsageDescription</key>
 	<string>걸음 수 측정을 위해 모션 및 피트니스 데이터 접근 권한이 필요합니다.</string>
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-5955022603563417~4162516602</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIBackgroundModes</key>

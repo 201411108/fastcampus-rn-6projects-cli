@@ -8,6 +8,7 @@ import {
   getStepInsightHistory,
 } from '../services/stepInsightHistoryStorage';
 import { sendGoalAchievedNotification } from '../utils/goalNotification';
+import { showInsightInterstitial } from '../utils/showInsightInterstitial';
 import type { StepInsightHistoryItem } from '../types/stepInsight';
 
 type UseStepInsightAutoTriggerParams = {
@@ -27,9 +28,9 @@ export function useStepInsightAutoTrigger({
   const [stepInsightResult, setStepInsightResult] = useState(
     getEmptyStepInsightResult(),
   );
-  const [stepInsightHistory, setStepInsightHistory] = useState<StepInsightHistoryItem[]>(
-    [],
-  );
+  const [stepInsightHistory, setStepInsightHistory] = useState<
+    StepInsightHistoryItem[]
+  >([]);
 
   const refreshStepInsightHistory = useCallback(async () => {
     const nextHistory = await getStepInsightHistory();
@@ -47,11 +48,14 @@ export function useStepInsightAutoTrigger({
       setStepInsightErrorMessage('');
 
       const progressPercent = (nextStepCount / nextGoalStepCount) * 100;
-      const result = await generateStepInsightWithAi({
-        stepCount: nextStepCount,
-        goalStepCount: nextGoalStepCount,
-        progressPercent,
-      });
+      const [result] = await Promise.all([
+        generateStepInsightWithAi({
+          stepCount: nextStepCount,
+          goalStepCount: nextGoalStepCount,
+          progressPercent,
+        }),
+        showInsightInterstitial(),
+      ]);
 
       setStepInsightResult(result.data);
       if (!result.isFallback) {
@@ -84,7 +88,9 @@ export function useStepInsightAutoTrigger({
 
   const regenerateStepInsight = useCallback(() => {
     if (!isTracking || !goalStepCount || goalStepCount <= 0) {
-      setStepInsightErrorMessage('목표 걸음수를 설정하고 추적을 시작해 주세요.');
+      setStepInsightErrorMessage(
+        '목표 걸음수를 설정하고 추적을 시작해 주세요.',
+      );
       return;
     }
 
