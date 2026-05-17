@@ -110,7 +110,6 @@ platform :ios do
         teamID: apple_team_id
       },
       xcargs: xcode_auth_xcargs,
-      export_xcargs: xcode_auth_xcargs,
       skip_profile_detection: true
     )
 
