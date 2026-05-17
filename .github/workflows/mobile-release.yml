@@ -255,11 +255,14 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Upload Gradle log on failure
+      - name: Upload Gradle diagnostics on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: android-gradle-failure
-          path: RnHealthPlatform/apps/mobile/android/app/build/outputs
+          path: |
+            RnHealthPlatform/apps/mobile/android/app/build/outputs
+            RnHealthPlatform/apps/mobile/android/app/build/reports
+            RnHealthPlatform/apps/mobile/android/app/build/tmp
           if-no-files-found: ignore
           retention-days: 7
