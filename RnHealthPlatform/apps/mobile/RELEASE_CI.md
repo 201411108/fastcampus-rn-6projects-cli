@@ -71,8 +71,9 @@ Workflow는 `environment: mobile-release`를 사용한다. 저장소 **Settings 
 ## 아티팩트 / 로그
 
 - Android: 성공 시 `app-release.aab` 아티팩트.
-- iOS: `ios-fastlane-logs` 아티팩트(있을 경우).
-- 실패 시 해당 job 로그 하단 및 실패용 아티팩트를 확인한다.
+- Android 실패: `android-gradle-failure` 아티팩트에서 `fastlane/logs/android-fastlane.log`, `android/**/build/reports`, `android/**/build/tmp`, `app/build/outputs`를 확인한다.
+- iOS: 실패 여부와 관계없이 `ios-fastlane-logs` 아티팩트에서 `fastlane/logs/ios-fastlane.log`, `fastlane/logs/gym`, `HealthAI.xcresult`를 확인한다.
+- 실패 원인 공유 시에는 GitHub Actions job 로그의 첫 번째 `FAILURE:` / `error:` 블록과 위 아티팩트의 플랫폼별 로그 파일을 함께 전달한다.
 
 ## 실패 시 점검
 

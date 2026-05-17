@@ -99,6 +99,10 @@ platform :ios do
       scheme: "HealthAI",
       configuration: "Release",
       export_method: "app-store",
+      buildlog_path: File.join(mobile_root, "fastlane/logs/gym"),
+      output_directory: File.join(mobile_root, "fastlane/build"),
+      result_bundle: true,
+      result_bundle_path: File.join(mobile_root, "fastlane/build/HealthAI.xcresult"),
       export_team_id: apple_team_id,
       export_options: {
         method: "app-store",
@@ -135,7 +139,7 @@ platform :android do
         "VERSION_NAME" => ENV["APP_VERSION"],
         "VERSION_CODE" => ENV["BUILD_NUMBER"]
       },
-      flags: "--no-daemon --stacktrace",
+      flags: "--no-daemon --stacktrace --info --warning-mode all",
       print_command: true
     )
 

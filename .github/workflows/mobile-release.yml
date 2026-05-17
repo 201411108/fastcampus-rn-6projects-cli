@@ -144,7 +144,10 @@ jobs:
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           TESTFLIGHT_CHANGELOG_PATH: ${{ github.workspace }}/RnHealthPlatform/apps/mobile/fastlane/tmp/release_notes.txt
-        run: bundle exec fastlane ios upload_testflight
+        run: |
+          set -euo pipefail
+          mkdir -p fastlane/logs
+          bundle exec fastlane ios upload_testflight 2>&1 | tee fastlane/logs/ios-fastlane.log
 
       - name: Upload fastlane + gym logs
         if: always()
@@ -153,6 +156,7 @@ jobs:
           name: ios-fastlane-logs
           path: |
             RnHealthPlatform/apps/mobile/fastlane/logs
+            RnHealthPlatform/apps/mobile/fastlane/build/*.xcresult
           if-no-files-found: ignore
           retention-days: 14
 
@@ -244,7 +248,10 @@ jobs:
         working-directory: RnHealthPlatform/apps/mobile
         env:
           GOOGLE_PLAY_JSON_KEY_PATH: ${{ steps.play_json.outputs.json_path }}
-        run: bundle exec fastlane android internal
+        run: |
+          set -euo pipefail
+          mkdir -p fastlane/logs
+          bundle exec fastlane android internal 2>&1 | tee fastlane/logs/android-fastlane.log
 
       - name: Upload AAB artifact
         if: success()
@@ -261,6 +268,9 @@ jobs:
         with:
           name: android-gradle-failure
           path: |
+            RnHealthPlatform/apps/mobile/fastlane/logs
+            RnHealthPlatform/apps/mobile/android/build/reports
+            RnHealthPlatform/apps/mobile/android/build/tmp
             RnHealthPlatform/apps/mobile/android/app/build/outputs
             RnHealthPlatform/apps/mobile/android/app/build/reports
             RnHealthPlatform/apps/mobile/android/app/build/tmp
