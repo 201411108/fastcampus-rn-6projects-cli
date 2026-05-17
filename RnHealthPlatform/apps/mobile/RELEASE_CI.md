@@ -1,6 +1,6 @@
 # 모바일 릴리스 CI/CD (TestFlight · Play internal)
 
-GitHub **Release**가 **published**될 때 [.github/workflows/mobile-release.yml](../.github/workflows/mobile-release.yml)이 실행된다.  
+GitHub **Release**가 **published**될 때 [.github/workflows/mobile-release.yml](../../../.github/workflows/mobile-release.yml)이 실행된다.
 태그는 `vMAJOR.MINOR.PATCH`(예: `v1.4.0`) 형식이며, 앱 버전 `APP_VERSION`은 `v`를 뺀 값(예: `1.4.0`)이다. 빌드 번호 `BUILD_NUMBER`는 GitHub Actions의 `github.run_number`를 사용한다.
 
 ## 준비
@@ -11,6 +11,8 @@ bundle install
 ```
 
 `Gemfile.lock`을 바꿀 때는 CI와 동일하게 **Ruby 3.3**에서 `bundle lock` / `bundle install`을 실행하는 것을 권장한다(일부 gem은 Ruby 버전별로 설치 가능한 버전이 다름).
+
+iOS CI는 React Native 0.81의 요구사항에 맞춰 **Xcode 16.1 이상**이 필요하므로 `macos-15` runner에서 최신 stable Xcode를 선택한다.
 
 저장소 루트에서:
 
