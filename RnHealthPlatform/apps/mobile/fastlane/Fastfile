@@ -37,7 +37,8 @@ end
 platform :ios do
   desc "Archive HealthAI and upload to TestFlight (no App Store customer release)."
   lane :upload_testflight do
-    setup_ci(provider: "github") if is_ci
+    # setup_ci only validates provider "travis" | "circleci" in fastlane < 4; omit provider on GitHub Actions.
+    setup_ci if is_ci
 
     assert_version_env!
 
@@ -99,6 +100,7 @@ platform :android do
         "VERSION_NAME" => ENV["APP_VERSION"],
         "VERSION_CODE" => ENV["BUILD_NUMBER"]
       },
+      flags: "--no-daemon --stacktrace",
       print_command: true
     )
 

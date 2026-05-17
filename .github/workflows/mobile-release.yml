@@ -199,12 +199,19 @@ jobs:
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           set -euo pipefail
-          cat > apps/mobile/android/release-keystore.properties <<EOF
-          storeFile=upload-keystore
-          storePassword=${STORE_PASSWORD}
-          keyAlias=${KEY_ALIAS}
-          keyPassword=${KEY_PASSWORD}
-          EOF
+          printf '%s\n' \
+            'storeFile=upload-keystore' \
+            "storePassword=${STORE_PASSWORD}" \
+            "keyAlias=${KEY_ALIAS}" \
+            "keyPassword=${KEY_PASSWORD}" \
+            > apps/mobile/android/release-keystore.properties
+
+      - name: Verify Android signing and Firebase config inputs
+        run: |
+          set -euo pipefail
+          test -s apps/mobile/android/upload-keystore
+          test -s apps/mobile/android/release-keystore.properties
+          test -s apps/mobile/android/app/google-services.json
 
       - name: Write Play service account JSON
         id: play_json
