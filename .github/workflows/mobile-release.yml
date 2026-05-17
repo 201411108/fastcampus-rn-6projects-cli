@@ -142,6 +142,7 @@ jobs:
         env:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           TESTFLIGHT_CHANGELOG_PATH: ${{ github.workspace }}/RnHealthPlatform/apps/mobile/fastlane/tmp/release_notes.txt
         run: bundle exec fastlane ios upload_testflight
 

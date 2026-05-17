@@ -37,6 +37,7 @@ yarn install
 | `APP_VERSION` | 마케팅 버전 (예: `1.4.0`) |
 | `BUILD_NUMBER` | iOS `CURRENT_PROJECT_VERSION` · Android `versionCode` (정수 문자열) |
 | `APP_STORE_CONNECT_KEY_ID` / `APP_STORE_CONNECT_ISSUER_ID` / `APP_STORE_CONNECT_KEY_FILEPATH` | App Store Connect API |
+| `APPLE_TEAM_ID` | (선택) Apple Developer Team ID. 생략하면 Xcode 프로젝트의 `FCFXQT546K`를 사용 |
 | `TESTFLIGHT_CHANGELOG_PATH` | (선택) TestFlight “What to Test” 텍스트 파일 |
 | `GOOGLE_PLAY_JSON_KEY_PATH` | Play 서비스 계정 JSON 파일 경로 |
 
@@ -53,6 +54,7 @@ Workflow는 `environment: mobile-release`를 사용한다. 저장소 **Settings 
 | `APP_STORE_CONNECT_KEY_ID` | ASC API Key ID |
 | `APP_STORE_CONNECT_ISSUER_ID` | Issuer ID |
 | `APP_STORE_CONNECT_KEY_P8` | `.p8` 키 전체 (멀티라인). 워크플로가 `~/private_keys/AuthKey_<KEY_ID>.p8` 로 저장 |
+| `APPLE_TEAM_ID` | (선택) Xcode 프로젝트와 다른 팀을 쓸 때만 설정 |
 | `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | Play 업로드 서비스 계정 JSON |
 | `ANDROID_UPLOAD_KEYSTORE_BASE64` | 업로드 keystore 바이너리를 base64 인코딩한 값 |
 | `ANDROID_KEYSTORE_STORE_PASSWORD` | keystore 비밀번호 |
@@ -62,7 +64,7 @@ Workflow는 `environment: mobile-release`를 사용한다. 저장소 **Settings 
 
 ## Secret 복원 패턴 (CI)
 
-- **App Store Connect**: `APP_STORE_CONNECT_KEY_P8`를 파일로 쓴 뒤 `APP_STORE_CONNECT_KEY_FILEPATH`를 그 경로로 설정 (워크플로에 구현됨).
+- **App Store Connect**: `APP_STORE_CONNECT_KEY_P8`를 파일로 쓴 뒤 `APP_STORE_CONNECT_KEY_FILEPATH`를 그 경로로 설정한다. `build_app`에는 `api_key` 옵션이 없으므로, 빌드 단계는 `xcodebuild -allowProvisioningUpdates`와 App Store Connect 인증 인자로 자동 프로비저닝하고, 업로드 단계만 `api_key`를 넘긴다.
 - **Play**: JSON을 `${RUNNER_TEMP}/play-service-account.json` 등에 쓰고 `GOOGLE_PLAY_JSON_KEY_PATH`를 설정 (워크플로에 구현됨).
 - **Android keystore**: base64 디코드 → `apps/mobile/android/upload-keystore`, `release-keystore.properties`는 Secrets를 참조해 생성.
 
