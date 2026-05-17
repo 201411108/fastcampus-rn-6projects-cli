@@ -18,6 +18,9 @@ jobs:
   preflight:
     name: Preflight
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: RnHealthPlatform
     outputs:
       app_version: ${{ steps.meta.outputs.app_version }}
     steps:
@@ -64,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mobile-release-notes
-          path: release-notes/release_notes.txt
+          path: RnHealthPlatform/release-notes/release_notes.txt
           if-no-files-found: error
           retention-days: 5
 
@@ -73,6 +76,9 @@ jobs:
     needs: preflight
     runs-on: macos-14
     environment: mobile-release
+    defaults:
+      run:
+        working-directory: RnHealthPlatform
     env:
       APP_VERSION: ${{ needs.preflight.outputs.app_version }}
       BUILD_NUMBER: ${{ github.run_number }}
@@ -84,7 +90,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: mobile-release-notes
-          path: release-notes
+          path: RnHealthPlatform/release-notes
 
       - name: Copy release notes for TestFlight changelog
         run: |
@@ -107,7 +113,7 @@ jobs:
         with:
           ruby-version: '3.3'
           bundler-cache: true
-          working-directory: apps/mobile
+          working-directory: RnHealthPlatform/apps/mobile
 
       - name: Prepare App Store Connect API key
         env:
@@ -122,11 +128,11 @@ jobs:
           echo "APP_STORE_CONNECT_KEY_FILEPATH=${KEY_PATH}" >> "${GITHUB_ENV}"
 
       - name: Run fastlane (iOS)
-        working-directory: apps/mobile
+        working-directory: RnHealthPlatform/apps/mobile
         env:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          TESTFLIGHT_CHANGELOG_PATH: ${{ github.workspace }}/apps/mobile/fastlane/tmp/release_notes.txt
+          TESTFLIGHT_CHANGELOG_PATH: ${{ github.workspace }}/RnHealthPlatform/apps/mobile/fastlane/tmp/release_notes.txt
         run: bundle exec fastlane ios upload_testflight
 
       - name: Upload fastlane + gym logs
@@ -135,7 +141,7 @@ jobs:
         with:
           name: ios-fastlane-logs
           path: |
-            apps/mobile/fastlane/logs
+            RnHealthPlatform/apps/mobile/fastlane/logs
           if-no-files-found: ignore
           retention-days: 14
 
@@ -144,6 +150,9 @@ jobs:
     needs: preflight
     runs-on: ubuntu-latest
     environment: mobile-release
+    defaults:
+      run:
+        working-directory: RnHealthPlatform
     env:
       APP_VERSION: ${{ needs.preflight.outputs.app_version }}
       BUILD_NUMBER: ${{ github.run_number }}
@@ -211,10 +220,10 @@ jobs:
         with:
           ruby-version: '3.3'
           bundler-cache: true
-          working-directory: apps/mobile
+          working-directory: RnHealthPlatform/apps/mobile
 
       - name: Run fastlane (Android)
-        working-directory: apps/mobile
+        working-directory: RnHealthPlatform/apps/mobile
         env:
           GOOGLE_PLAY_JSON_KEY_PATH: ${{ steps.play_json.outputs.json_path }}
         run: bundle exec fastlane android internal
@@ -224,7 +233,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-app-release-aab
-          path: apps/mobile/android/app/build/outputs/bundle/release/app-release.aab
+          path: RnHealthPlatform/apps/mobile/android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: warn
           retention-days: 14
 
@@ -233,6 +242,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-gradle-failure
-          path: apps/mobile/android/app/build/outputs
+          path: RnHealthPlatform/apps/mobile/android/app/build/outputs
           if-no-files-found: ignore
           retention-days: 7
