@@ -43,6 +43,14 @@ Part 5는 아래 3개의 프로젝트로 구성됩니다.
 - `터보 만보기` → `RnTurboPedometer`
 - `마이 헬스 플랫폼` → `RnHealthPlatform`
 
+각 프로젝트의 원본 Git 저장소 주소는 다음과 같습니다.
+
+| 프로젝트 | 디렉터리 | Git 저장소 |
+| --- | --- | --- |
+| AI 식단 렌즈 | `RnAiCamera` | <https://github.com/201411108/RnAiCamera.git> |
+| 터보 만보기 | `RnTurboPedometer` | <https://github.com/201411108/RnTurboPedometer.git> |
+| 마이 헬스 플랫폼 | `RnHealthPlatform` | <https://github.com/201411108/RnHealthPlatform.git> |
+
 ### AI 식단 렌즈
 
 - 카메라와 AI를 결합해 이미지 기반 입력을 처리하는 프로젝트입니다.
