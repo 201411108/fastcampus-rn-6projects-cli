@@ -1,0 +1,12 @@
+[submodule "RnAiCamera"]
+	path = RnAiCamera
+	url = https://github.com/201411108/fastcampus-RnAiCamera.git
+[submodule "RnHealthPlatform"]
+	path = RnHealthPlatform
+	url = https://github.com/201411108/fastcampus-RnHealthPlatform.git
+[submodule "RnTurboPedometer"]
+	path = RnTurboPedometer
+	url = https://github.com/201411108/fastcampus-RnTurboPedometer.git
+[submodule "template"]
+	path = template
+	url = https://github.com/201411108/template.git
