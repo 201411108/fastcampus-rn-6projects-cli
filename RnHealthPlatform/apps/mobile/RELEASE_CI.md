@@ -116,6 +116,7 @@ Workflow는 `environment: mobile-release`를 사용한다. 저장소 **Settings 
 - `export_method: app-store`인데 CI keychain에 Distribution 인증서·App Store 프로파일 없음
 - **로컬 Xcode TestFlight 업로드 성공** ≠ CI 서명 준비 완료 (Mac 키체인 vs GitHub runner)
 - `Cloud signing permission error` / `No profiles for 'com.hankim.healthai'` / `No signing certificate "iOS Distribution"` → CI가 cloud signing만 시도할 때. Fastfile은 `cert` + `sigh`로 우회한다.
+- `Certificate XXXXX can't be found on your local computer` → Apple Developer에만 있고 **private key(.p12)가 CI에 없는** Distribution 인증서. Fastfile이 캐시 없을 때 orphan cert를 revoke한 뒤 새로 생성한다. API Key 권한이 부족하면 [Certificates](https://developer.apple.com/account/resources/certificates/list)에서 수동 revoke.
 - Xcode/fastlane export 인자 중복 (`-authenticationKeyPath may only be provided once`)
 
 원인 공유 시 **`Archive Succeeded` 여부** + **`exportArchive` 직후 `error:` 블록**을 함께 보내면 된다.
