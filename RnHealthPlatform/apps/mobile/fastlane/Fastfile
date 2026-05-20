@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "base64"
+require "fileutils"
 require "shellwords"
 
 default_platform(:ios)
@@ -62,6 +64,94 @@ def ci_keychain_path
   FastlaneCore::Helper.keychain_path(raw_path)
 end
 
+def ci_certs_output_path
+  File.join(mobile_root, "fastlane/certs")
+end
+
+def ci_cached_distribution_p12_paths
+  Dir.glob(File.join(ci_certs_output_path, "*.p12"))
+end
+
+def ci_has_cached_distribution_p12?
+  ci_cached_distribution_p12_paths.any?
+end
+
+def profile_name_from_mobileprovision(path)
+  plist_xml = sh("security", "cms", "-D", "-i", path, log: false)
+  match = plist_xml.match(/<key>Name<\/key>\s*<string>(.*?)<\/string>/m)
+  UI.user_error!("Could not read provisioning profile name from #{path}.") if match.nil?
+
+  match[1]
+end
+
+def revoke_distribution_certs_without_private_key!(api_key:)
+  return unless is_ci
+  return if ci_has_cached_distribution_p12?
+
+  FileUtils.mkdir_p(ci_certs_output_path)
+  cached_ids = ci_cached_distribution_p12_paths.map { |path| File.basename(path, ".p12") }
+
+  token = Spaceship::ConnectAPI::Token.from(hash: api_key)
+  Spaceship::ConnectAPI.token = token
+
+  cert_types = [
+    Spaceship::ConnectAPI::Certificate::CertificateType::DISTRIBUTION,
+    Spaceship::ConnectAPI::Certificate::CertificateType::IOS_DISTRIBUTION
+  ]
+
+  certificates = Spaceship::ConnectAPI::Certificate.all(
+    filter: { certificateType: cert_types.join(",") }
+  )
+
+  revoked_count = 0
+  certificates.each do |certificate|
+    next if cached_ids.include?(certificate.id)
+
+    p12_path = File.join(ci_certs_output_path, "#{certificate.id}.p12")
+    next if File.exist?(p12_path)
+
+    UI.important(
+      "CI: revoking distribution certificate #{certificate.id} (#{certificate.display_name}) " \
+      "because no matching private key is cached on this runner."
+    )
+    certificate.delete!
+    revoked_count += 1
+  end
+
+  UI.success("CI: revoked #{revoked_count} orphaned distribution certificate(s).") if revoked_count.positive?
+end
+
+def import_ci_signing_from_secrets!(keychain:)
+  certificate_base64 = ENV["IOS_DISTRIBUTION_CERTIFICATE_BASE64"].to_s.strip
+  profile_base64 = ENV["IOS_PROVISIONING_PROFILE_BASE64"].to_s.strip
+  certificate_password = ENV["IOS_DISTRIBUTION_CERTIFICATE_PASSWORD"].to_s
+
+  return nil if certificate_base64.empty? || profile_base64.empty?
+
+  tmp_dir = File.join(mobile_root, "fastlane/tmp")
+  FileUtils.mkdir_p(tmp_dir)
+
+  p12_path = File.join(tmp_dir, "distribution.p12")
+  profile_path = File.join(tmp_dir, "distribution.mobileprovision")
+  File.binwrite(p12_path, Base64.decode64(certificate_base64))
+  File.binwrite(profile_path, Base64.decode64(profile_base64))
+
+  FastlaneCore::KeychainImporter.import_file(
+    p12_path,
+    keychain[:keychain_path],
+    keychain_password: keychain[:keychain_password],
+    certificate_password: certificate_password,
+    skip_set_partition_list: true
+  )
+
+  install_provisioning_profile(path: profile_path)
+  profile_name = ENV["IOS_PROVISIONING_PROFILE_NAME"].to_s.strip
+  profile_name = profile_name_from_mobileprovision(profile_path) if profile_name.empty?
+
+  UI.success("CI: imported distribution certificate and provisioning profile from GitHub Secrets.")
+  profile_name
+end
+
 def prepare_ci_keychain_for_signing!
   keychain_path = ci_keychain_path
   keychain_password = ENV.fetch("MATCH_KEYCHAIN_PASSWORD", "")
@@ -79,27 +169,35 @@ def sync_app_store_signing_for_ci!(api_key:)
   UI.message("CI: installing App Store distribution certificate and provisioning profile into the temporary keychain.")
 
   keychain = prepare_ci_keychain_for_signing!
+  FileUtils.mkdir_p(ci_certs_output_path)
 
-  cert(
-    api_key: api_key,
-    development: false,
-    force: false,
-    generate_apple_certs: true,
-    keychain_path: keychain[:keychain_path],
-    keychain_password: keychain[:keychain_password],
-    skip_set_partition_list: true,
-    output_path: File.join(mobile_root, "fastlane/certs")
-  )
+  profile_name = import_ci_signing_from_secrets!(keychain: keychain)
 
-  sigh(
-    api_key: api_key,
-    app_identifier: IOS_BUNDLE_ID,
-    force: false,
-    readonly: false,
-    fail_on_name_taken: false
-  )
+  unless profile_name
+    revoke_distribution_certs_without_private_key!(api_key: api_key)
 
-  profile_name = Actions.lane_context[SharedValues::SIGH_NAME]
+    cert(
+      api_key: api_key,
+      development: false,
+      force: false,
+      generate_apple_certs: true,
+      keychain_path: keychain[:keychain_path],
+      keychain_password: keychain[:keychain_password],
+      skip_set_partition_list: true,
+      output_path: ci_certs_output_path
+    )
+
+    sigh(
+      api_key: api_key,
+      app_identifier: IOS_BUNDLE_ID,
+      force: false,
+      readonly: false,
+      fail_on_name_taken: false
+    )
+
+    profile_name = Actions.lane_context[SharedValues::SIGH_NAME]
+  end
+
   UI.user_error!("Failed to resolve an App Store provisioning profile for #{IOS_BUNDLE_ID}.") if profile_name.to_s.strip.empty?
 
   update_code_signing_settings(
