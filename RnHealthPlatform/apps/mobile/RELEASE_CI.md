@@ -2,7 +2,11 @@
 
 스토어 아이콘·스크린샷·해상도 체크리스트: [STORE_ASSETS.md](./STORE_ASSETS.md)
 
-GitHub **Release**가 **published**될 때 [.github/workflows/mobile-release.yml](../../../.github/workflows/mobile-release.yml)이 실행된다.
+GitHub **Release**가 **published**될 때 아래 워크플로가 실행된다.
+
+- **실행 경로 (canonical)**: 저장소 루트 [`.github/workflows/mobile-release.yml`](../../../.github/workflows/mobile-release.yml)
+- **미러 사본**: [`RnHealthPlatform/.github/workflows/mobile-release.yml`](../../.github/workflows/mobile-release.yml) — 내용을 바꿀 때는 **두 파일을 항상 동일하게** 유지한다.
+
 태그는 `vMAJOR.MINOR.PATCH`(예: `v1.4.0`) 형식이며, 앱 버전 `APP_VERSION`은 `v`를 뺀 값(예: `1.4.0`)이다. 빌드 번호 `BUILD_NUMBER`는 GitHub Actions의 `github.run_number`를 사용한다.
 
 ## 준비
