@@ -5,6 +5,7 @@ require "shellwords"
 default_platform(:ios)
 
 APPLE_TEAM_ID = "FCFXQT546K"
+IOS_BUNDLE_ID = "com.hankim.healthai"
 
 def mobile_root
   @mobile_root ||= File.expand_path("..", __dir__)
@@ -55,6 +56,39 @@ def testflight_changelog_text
   end
 end
 
+def sync_app_store_signing_for_ci!(api_key:)
+  UI.message("CI: installing App Store distribution certificate and provisioning profile into the temporary keychain.")
+
+  cert(
+    api_key: api_key,
+    development: false,
+    force: false
+  )
+
+  sigh(
+    api_key: api_key,
+    app_identifier: IOS_BUNDLE_ID,
+    force: false,
+    fail_on_name_taken: false
+  )
+
+  profile_name = Actions.lane_context[SharedValues::SIGH_NAME]
+  UI.user_error!("Failed to resolve an App Store provisioning profile for #{IOS_BUNDLE_ID}.") if profile_name.to_s.strip.empty?
+
+  update_code_signing_settings(
+    path: File.join(mobile_root, "ios/HealthAI.xcodeproj"),
+    use_automatic_signing: false,
+    team_id: apple_team_id,
+    targets: ["HealthAI"],
+    build_configurations: ["Release"],
+    code_sign_identity: "Apple Distribution",
+    profile_name: profile_name,
+    bundle_identifier: IOS_BUNDLE_ID
+  )
+
+  profile_name
+end
+
 desc "Yarn workspace lint + typecheck (no store upload)."
 lane :preflight do
   Dir.chdir(repo_root) do
@@ -94,6 +128,23 @@ platform :ios do
       podfile: File.join(mobile_root, "ios/Podfile")
     )
 
+    export_options = {
+      method: "app-store",
+      teamID: apple_team_id
+    }
+    build_xcargs = nil
+
+    if is_ci
+      profile_name = sync_app_store_signing_for_ci!(api_key: api_key)
+      export_options[:signingStyle] = "manual"
+      export_options[:provisioningProfiles] = {
+        IOS_BUNDLE_ID => profile_name
+      }
+    else
+      export_options[:signingStyle] = "automatic"
+      build_xcargs = xcode_auth_xcargs if ENV["APP_STORE_CONNECT_KEY_FILEPATH"]
+    end
+
     build_app(
       workspace: File.join(mobile_root, "ios/HealthAI.xcworkspace"),
       scheme: "HealthAI",
@@ -104,12 +155,8 @@ platform :ios do
       result_bundle: true,
       result_bundle_path: File.join(mobile_root, "fastlane/build/HealthAI.xcresult"),
       export_team_id: apple_team_id,
-      export_options: {
-        method: "app-store",
-        signingStyle: "automatic",
-        teamID: apple_team_id
-      },
-      xcargs: xcode_auth_xcargs,
+      export_options: export_options,
+      xcargs: build_xcargs,
       skip_profile_detection: true
     )
 
