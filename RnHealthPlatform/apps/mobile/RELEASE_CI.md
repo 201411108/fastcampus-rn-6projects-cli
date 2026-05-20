@@ -66,7 +66,7 @@ Workflow는 `environment: mobile-release`를 사용한다. 저장소 **Settings 
 
 ## Secret 복원 패턴 (CI)
 
-- **App Store Connect**: `APP_STORE_CONNECT_KEY_P8`를 파일로 쓴 뒤 `APP_STORE_CONNECT_KEY_FILEPATH`를 그 경로로 설정한다. CI에서는 `cert` + `sigh`로 **Distribution 인증서·App Store 프로파일**을 임시 keychain에 설치한 뒤 **manual signing**으로 archive/export 한다. (로컬 Xcode 업로드와 서명 경로가 다름.)
+- **App Store Connect**: `APP_STORE_CONNECT_KEY_P8`를 파일로 쓴 뒤 `APP_STORE_CONNECT_KEY_FILEPATH`를 그 경로로 설정한다. CI에서는 `cert` + `sigh`로 **Distribution 인증서·App Store 프로파일**을 `setup_ci` 임시 keychain에 설치한 뒤 **manual signing**으로 archive/export 한다. (`cert`에 keychain 경로를 빼면 login keychain으로 들어가 `Could not find the newly generated certificate installed`가 날 수 있음.)
 - **Play**: JSON을 `${RUNNER_TEMP}/play-service-account.json` 등에 쓰고 `GOOGLE_PLAY_JSON_KEY_PATH`를 설정 (워크플로에 구현됨).
 - **Android keystore**: base64 디코드 → `apps/mobile/android/upload-keystore`, `release-keystore.properties`는 Secrets를 참조해 생성.
 

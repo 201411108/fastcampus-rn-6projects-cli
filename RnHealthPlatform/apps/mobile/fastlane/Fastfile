@@ -56,19 +56,46 @@ def testflight_changelog_text
   end
 end
 
+def ci_keychain_path
+  raw_path = Actions.lane_context[SharedValues::KEYCHAIN_PATH] ||
+             File.expand_path("~/Library/Keychains/#{ENV.fetch('MATCH_KEYCHAIN_NAME', 'fastlane_tmp_keychain')}")
+  FastlaneCore::Helper.keychain_path(raw_path)
+end
+
+def prepare_ci_keychain_for_signing!
+  keychain_path = ci_keychain_path
+  keychain_password = ENV.fetch("MATCH_KEYCHAIN_PASSWORD", "")
+
+  UI.message("CI: preparing keychain at #{keychain_path}")
+  FastlaneCore::CertChecker.install_missing_wwdr_certificates(in_keychain: keychain_path)
+
+  {
+    keychain_path: keychain_path,
+    keychain_password: keychain_password
+  }
+end
+
 def sync_app_store_signing_for_ci!(api_key:)
   UI.message("CI: installing App Store distribution certificate and provisioning profile into the temporary keychain.")
+
+  keychain = prepare_ci_keychain_for_signing!
 
   cert(
     api_key: api_key,
     development: false,
-    force: false
+    force: false,
+    generate_apple_certs: true,
+    keychain_path: keychain[:keychain_path],
+    keychain_password: keychain[:keychain_password],
+    skip_set_partition_list: true,
+    output_path: File.join(mobile_root, "fastlane/certs")
   )
 
   sigh(
     api_key: api_key,
     app_identifier: IOS_BUNDLE_ID,
     force: false,
+    readonly: false,
     fail_on_name_taken: false
   )
 
